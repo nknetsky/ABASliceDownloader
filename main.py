@@ -1,7 +1,7 @@
 # %%
 # #! python3
 # downloadAllenBrainSlice - download brain slices from the Allen Brain Atlas
-from downloadAllenBrainSlice_function import *
+from function import *
 import sys
 
 # %%

@@ -1,0 +1,24 @@
+  ExperimentID Gene Symbol                               Gene Name     Plane
+0     74277302       Wdfy4  WD repeat and FYVE domain containing 4  sagittal
+  ExperimentID Gene Symbol                Gene Name     Plane
+0     70192165      Txnrd3  thioredoxin reductase 3  sagittal
+1     71670706      Txnrd3  thioredoxin reductase 3   coronal
+  ExperimentID Gene Symbol    Gene Name     Plane
+0     71210635       Otop2  otopetrin 2  sagittal
+  ExperimentID Gene Symbol     Gene Name     Plane
+0     69816667        Pax2  paired box 2  sagittal
+  ExperimentID    Gene Symbol                   Gene Name     Plane
+0     68633357  5430435G22Rik  RIKEN cDNA 5430435G22 gene  sagittal
+Place an input name after -s.
+  ExperimentID Gene Symbol                              Gene Name     Plane
+0     69445379        Amz1  archaelysin family metallopeptidase 1  sagittal
+Place an input name after -s.
+  ExperimentID Gene Symbol    Gene Name     Plane
+0     71280778       Plin4  perilipin 4  sagittal
+Place an input name after -s.
+Place an input name after -s.
+Place an input name after -s.
+Place an input name after -s.
+Place an input name after -s.
+  ExperimentID    Gene Symbol                   Gene Name     Plane
+0     69671774  E230001N04Rik  RIKEN cDNA E230001N04 gene  sagittal

@@ -9,6 +9,7 @@ from allensdk.config.manifest import Manifest
 
 import logging
 import os
+from tqdm import tqdm
 
 
 # %%
@@ -21,9 +22,15 @@ def get_gene_by_id(results_df, ExperimentID):
         + gene_name
         + " ("
         + ExperimentID
-        + ")"
+        + ")",
+        file=sys.stderr,
+        flush=True,
     )
-    print('The downloaded brain lices will be placed in the dir "' + gene_name + '".')
+    print(
+        'The downloaded brain lices will be placed in the dir "' + gene_name + '".',
+        file=sys.stderr,
+        flush=True,
+    )
     return gene_name
 
 
@@ -82,24 +89,37 @@ def download_brain_slice(exp_id, dirname, path):
         si["id"] for si in section_images
     ]  # Take value of 'id' from the dictionary
 
-    print("There are " + str(len(section_image_ids)) + " slices.")
+    print(
+        "There are " + str(len(section_image_ids)) + " slices.",
+        file=sys.stderr,
+        flush=True,
+    )
 
     # You have probably noticed that the AllenSDK has a logger which notifies you of file downloads.
     # Since we are downloading ~300 images, we don't want to see messages for each one.
     # The following line will temporarily disable the download logger.
     logging.getLogger("allensdk.api.api.retrieve_file_over_http").disabled = True
 
-    print("Downloads initiated", end="...")
-    sys.stdout.flush()
+    print(
+        "Downloads initiated", end="...", file=sys.stderr, flush=True,
+    )
+    
+    # Create a progress bar
+    pbar = tqdm(total=len(section_image_ids), desc="Downloading...")
 
     for index, section_image_id in enumerate(section_image_ids):
-        print(str(index + 1) + "/" + str(len(section_image_ids)), end="...")
+#         print(
+#             str(index + 1) + "/" + str(len(section_image_ids)),
+#             end="...",
+#             file=sys.stderr,
+#             flush=True,
+#         )
         file_name = str(section_image_id) + format_str
         file_path = os.path.join(section_image_directory, file_name)
 
         Manifest.safe_make_parent_dirs(file_path)
 
-        # Check if the file is already downloaded, which happens if the downloads have been interrupated.
+        # Check if the file is already downloaded, which happens if the downloads have been interrupted.
         saved_file_names = os.listdir(section_image_directory)
         if file_name in saved_file_names:
             continue
@@ -107,7 +127,13 @@ def download_brain_slice(exp_id, dirname, path):
         image_api.download_section_image(
             section_image_id, file_path=file_path, downsample=downsample
         )
+        
+        pbar.update()
 
+    pbar.close()
+    
     # re-enable the logger
     logging.getLogger("allensdk.api.api.retrieve_file_over_http").disabled = False
-    print("Downloads completed")
+    print(
+        "Downloads completed.", file=sys.stderr, flush=True,
+    )
