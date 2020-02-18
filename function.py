@@ -1,29 +1,35 @@
+# %%
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import pandas as pd
 import sys
 
 from allensdk.api.queries.image_download_api import ImageDownloadApi
-from allensdk.api.queries.svg_api import SvgApi
 from allensdk.config.manifest import Manifest
-
-import matplotlib.pyplot as plt
-from skimage.io import imread
 
 import logging
 import os
-from base64 import b64encode
 
-from IPython.display import HTML, display
 
-def get_gene_by_id(results_df,ExperimentID):
-    gene_name = results_df["Gene Symbol"][results_df["ExperimentID"] == ExperimentID].iloc[0]
-    print("You are requesting for downloading brain lices of " + gene_name + " (" + ExperimentID + ")")
+# %%
+def get_gene_by_id(results_df, ExperimentID):
+    gene_name = results_df["Gene Symbol"][
+        results_df["ExperimentID"] == ExperimentID
+    ].iloc[0]
+    print(
+        "You are requesting for downloading brain lices of "
+        + gene_name
+        + " ("
+        + ExperimentID
+        + ")"
+    )
     print('The downloaded brain lices will be placed in the dir "' + gene_name + '".')
     return gene_name
 
+
+# %%
 def get_info_by_search_gene_name(gene_name):
-    
+
     driver = webdriver.Chrome()
     url = "https://mouse.brain-map.org/search/show?search_term=" + gene_name
     driver.get(url)
@@ -36,7 +42,9 @@ def get_info_by_search_gene_name(gene_name):
         results = []
         for row in soup.select("div[row]"):
             if col == 1 or col == 2:
-                result = row.select("div.c" + str(col))[0].select("a")[0].getText().strip()
+                result = (
+                    row.select("div.c" + str(col))[0].select("a")[0].getText().strip()
+                )
             else:
                 result = row.select("div.c" + str(col))[0].getText().strip()
             if result == "":
@@ -50,42 +58,20 @@ def get_info_by_search_gene_name(gene_name):
 
     header = ["ExperimentID", "Gene Symbol", "Gene Name", "Plane"]
     results_df.columns = header
-    
+
     return results_df
 
-def download_brain_slice(exp_id,dirname,path):
-    
-    # We will want to look at the images we download in this notebook. Here are a couple of functions that do this:
-    def verify_image(file_path, figsize=(18, 22)):
-        image = imread(file_path)
 
-        fig, ax = plt.subplots(figsize=figsize)
-        ax.imshow(image)
+# %%
+def download_brain_slice(exp_id, dirname, path):
 
-
-    def verify_svg(file_path, width_scale, height_scale):
-        # we're using this function to display scaled svg in the rendered notebook.
-        # we suggest that in your own work you use a tool such as inkscape or illustrator to view svg
-
-        with open(file_path, "rb") as svg_file:
-            svg = svg_file.read()
-        encoded_svg = b64encode(svg)
-        decoded_svg = encoded_svg.decode("ascii")
-
-        st = r'<img class="figure" src="data:image/svg+xml;base64,{}" width={}% height={}%></img>'.format(
-            decoded_svg, width_scale, height_scale
-        )
-        display(HTML(st))
-
-
-    # Finally, we will need an instance of `ImageDownloadApi` and an instance of `SvgApi`:
+    # create an image download API
     image_api = ImageDownloadApi()
-    svg_api = SvgApi()
 
     section_data_set_id = int(exp_id)
     downsample = 0
-    
-    section_image_directory = path + dirname
+
+    section_image_directory = os.path.join(path, dirname)
     format_str = ".jpg"
 
     # get the image ids for all of the images in this data set
