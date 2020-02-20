@@ -45,25 +45,34 @@ def get_info_by_search_gene_name(gene_name):
 
     # Get the search results as dataframe
 
+    # store the info of a search
+    results_df = pd.DataFrame()
+    
+    # iterate necessary columns
     for ii, col in enumerate([1, 2, 3, 6]):
+        
+        # store the info of a column
         results = []
+
+        # iterate rows
         for row in soup.select("div[row]"):
             if col == 1 or col == 2:
-                result = (
-                    row.select("div.c" + str(col))[0].select("a")[0].getText().strip()
-                )
+                result = row.select("div.c" + str(col))[0].select("a")[0].getText().strip()
             else:
                 result = row.select("div.c" + str(col))[0].getText().strip()
             if result == "":
                 break
+                
+            # store a result (an item) in the results list
             results.append(result)
-        if ii:
-            results = pd.Series(results)
-            results_df = pd.concat([results_df, results], axis=1)
-        else:
-            results_df = pd.DataFrame(results)
 
+        # integrate the results list into a results_df
+        results_df = pd.concat([results_df, pd.Series(results)], axis=1)
+
+    # create a list of names of columns
     header = ["ExperimentID", "Gene Symbol", "Gene Name", "Plane"]
+    
+    # assign the header to the results_df
     results_df.columns = header
 
     return results_df
@@ -108,12 +117,7 @@ def download_brain_slice(exp_id, dirname, path):
     pbar = tqdm(total=len(section_image_ids), desc="Downloading...")
 
     for index, section_image_id in enumerate(section_image_ids):
-#         print(
-#             str(index + 1) + "/" + str(len(section_image_ids)),
-#             end="...",
-#             file=sys.stderr,
-#             flush=True,
-#         )
+
         file_name = str(section_image_id) + format_str
         file_path = os.path.join(section_image_directory, file_name)
 
