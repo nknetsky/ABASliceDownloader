@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import pandas as pd
 import sys
+import time
 
 from allensdk.api.queries.image_download_api import ImageDownloadApi
 from allensdk.config.manifest import Manifest
@@ -35,47 +36,66 @@ def get_gene_by_id(results_df, ExperimentID):
 
 
 # %%
-def get_info_by_search_gene_name(gene_name):
+def get_info_by_search_gene_name(keywords):
 
     driver = webdriver.Chrome()
-    url = "https://mouse.brain-map.org/search/show?search_term=" + gene_name
-    driver.get(url)
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-    driver.quit()
 
-    # Get the search results as dataframe
+    for keyword in keywords:
 
-    # store the info of a search
-    results_df = pd.DataFrame()
-    
-    # iterate necessary columns
-    for ii, col in enumerate([1, 2, 3, 6]):
-        
-        # store the info of a column
-        results = []
+        url = "https://mouse.brain-map.org/search/show?search_term=" + keyword
+        driver.get(url)
+        time.sleep(2)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        # iterate rows
-        for row in soup.select("div[row]"):
-            if col == 1 or col == 2:
-                result = row.select("div.c" + str(col))[0].select("a")[0].getText().strip()
+        # Get the search results as dataframe
+
+        # store the info of a search
+        results_df = pd.DataFrame()
+
+        # iterate necessary columns
+        for ii, col in enumerate([1, 2, 3, 6]):
+
+            # store the info of a column
+            results = []
+
+            # iterate rows
+            for row in soup.select("div[row]"):
+                if col == 1 or col == 2:
+                    result = (
+                        row.select("div.c" + str(col))[0]
+                        .select("a")[0]
+                        .getText()
+                        .strip()
+                    )
+                else:
+                    result = row.select("div.c" + str(col))[0].getText().strip()
+                    
+                if result:
+                    
+                    # store a result (an item) in the results list
+                    results.append(result)
+                else:
+                    break
+
+            if results:          
+                # integrate the results list into a results_df
+                results_df = pd.concat([results_df, pd.Series(results)], axis=1)
             else:
-                result = row.select("div.c" + str(col))[0].getText().strip()
-            if result == "":
                 break
-                
-            # store a result (an item) in the results list
-            results.append(result)
+        
+        print("Keyword: " + keyword)
 
-        # integrate the results list into a results_df
-        results_df = pd.concat([results_df, pd.Series(results)], axis=1)
+        if not results_df.empty:
+            # create a list of names of columns
+            header = ["ExperimentID", "Gene Symbol", "Gene Name", "Plane"]
 
-    # create a list of names of columns
-    header = ["ExperimentID", "Gene Symbol", "Gene Name", "Plane"]
-    
-    # assign the header to the results_df
-    results_df.columns = header
+            # assign the header to the results_df
+            results_df.columns = header
+            print(results_df, end="\n")
+        else:
+            print("No results.")
 
-    return results_df
+    driver.quit()
 
 
 # %%

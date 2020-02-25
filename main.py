@@ -3,23 +3,31 @@
 # downloadAllenBrainSlice - download brain slices from the Allen Brain Atlas
 from function import *
 import sys
+import argparse
 
 # %%
 path = "/Users/erikliu/Desktop/"
 
-# '-s' followed by a keyword
-# search for the experiment using the keyword
-if "-s" in sys.argv:
-    # use the keyword after '-s' for the search
-    try:
-        global results_df
-        keyword = sys.argv[sys.argv.index("-s") + 1]
-        results_df = get_info_by_search_gene_name(keyword)
-        print("Keyword: " + keyword)
-        print(results_df, end="\n")
-    except ValueError:
-        print("Place an input name after -s.")
+# user argparse to parse input string
+try:
+    parser = argparse.ArgumentParser(
+        description="Search experiments in ABA using keywords"
+    )
+    parser.add_argument(
+        "-k",
+        "--keywords",
+        metavar="keywords",
+        nargs="*",
+        help="keywords for the search in ABA",
+    )
+    args = parser.parse_args()
+    get_info_by_search_gene_name(args.keywords)
 
+except ValueError:
+    print("Please see --help for the command use")
+
+# change the following arguments fit to argparse
+    
 # '-p' followed by a path
 # specify the path to store the images
 if "-p" in sys.argv:
