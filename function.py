@@ -1,9 +1,11 @@
 # %%
-from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 import pandas as pd
 import sys
-import time
 
 from allensdk.api.queries.image_download_api import ImageDownloadApi
 from allensdk.config.manifest import Manifest
@@ -36,64 +38,57 @@ def get_gene_by_id(results_df, ExperimentID):
 
 
 # %%
-def get_info_by_search_gene_name(keywords):
-
+def search_by_keywords(keywords):
+    
+    # create a browser
     driver = webdriver.Chrome()
+
+    result = pd.DataFrame()
 
     for keyword in keywords:
 
         url = "https://mouse.brain-map.org/search/show?search_term=" + keyword
         driver.get(url)
-        time.sleep(2)
-        soup = BeautifulSoup(driver.page_source, "html.parser")
 
-        # Get the search results as dataframe
+        # make sure the page is correcly loaded using explict wait
+        try:
+            element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, "div[row='22']"))
+            )
+        except:
+            print("An exception occurred: an element could not be found.\nThe Internet speed may be too slow.")
+            exit()
 
-        # store the info of a search
-        results_df = pd.DataFrame()
+        # the index of necessary columns in the table
+        column_index = [1, 2, 3, 6]
 
-        # iterate necessary columns
-        for ii, col in enumerate([1, 2, 3, 6]):
+        # use selenium to find the header
+        elements = driver.find_elements_by_class_name("slick-column-name")
+        header = []
+        for element in elements:
+            header.append(element.text)
+        header = [header[i] for i in column_index]
 
-            # store the info of a column
-            results = []
+        # user selenium to find the search results in the cells of the table
+        elements = driver.find_elements_by_tag_name("div[row]")
+        rows = []
+        for element in elements:
+            if element.text:
+                rows.append([element.text.split("\n")[i - 1] for i in column_index])
 
-            # iterate rows
-            for row in soup.select("div[row]"):
-                if col == 1 or col == 2:
-                    result = (
-                        row.select("div.c" + str(col))[0]
-                        .select("a")[0]
-                        .getText()
-                        .strip()
-                    )
-                else:
-                    result = row.select("div.c" + str(col))[0].getText().strip()
-                    
-                if result:
-                    
-                    # store a result (an item) in the results list
-                    results.append(result)
-                else:
-                    break
-
-            if results:          
-                # integrate the results list into a results_df
-                results_df = pd.concat([results_df, pd.Series(results)], axis=1)
-            else:
-                break
-        
-        print("Keyword: " + keyword)
-
-        if not results_df.empty:
-            # create a list of names of columns
-            header = ["ExperimentID", "Gene Symbol", "Gene Name", "Plane"]
-
-            # assign the header to the results_df
-            results_df.columns = header
-            print(results_df, end="\n")
+        # If the search result is present, make it a dataframe
+        if rows:
+            table = pd.DataFrame(rows, columns=header)
+            table.insert(0, "Keyword", keyword)
+        # If no search result, make an empty dataframe
         else:
-            print("No results.")
+            table = pd.DataFrame([keyword], columns=["Keyword"])
+
+        # concatenate the search results of each keyword
+        result = pd.concat([result, table])
+
+    # print the search results
+    print(result)
 
     driver.quit()
 

@@ -10,9 +10,12 @@ path = "/Users/erikliu/Desktop/"
 
 # user argparse to parse input string
 try:
+    # set up a parser
     parser = argparse.ArgumentParser(
         description="Search experiments in ABA using keywords"
     )
+    
+    # add arguments for keywords
     parser.add_argument(
         "-k",
         "--keywords",
@@ -20,8 +23,10 @@ try:
         nargs="*",
         help="keywords for the search in ABA",
     )
+    
+    # parse the input string
     args = parser.parse_args()
-    get_info_by_search_gene_name(args.keywords)
+    search_by_keywords(args.keywords)
 
 except ValueError:
     print("Please see --help for the command use")
