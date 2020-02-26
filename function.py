@@ -38,8 +38,8 @@ def get_gene_by_id(results_df, ExperimentID):
 
 
 # %%
-def search_by_keywords(keywords):
-    
+def search_by_keywords(keywords, outfile):
+
     # create a browser
     driver = webdriver.Chrome()
 
@@ -53,10 +53,13 @@ def search_by_keywords(keywords):
         # make sure the page is correcly loaded using explict wait
         try:
             element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "div[row='22']"))
+                EC.presence_of_element_located((By.ID, "selection_control_container"))
             )
         except:
-            print("An exception occurred: an element could not be found.\nThe Internet speed may be too slow.")
+            print(
+                "An exception occurred: an element could not be found.\nThe Internet speed may be too slow."
+            )
+            driver.quit()
             exit()
 
         # the index of necessary columns in the table
@@ -92,9 +95,13 @@ def search_by_keywords(keywords):
 
     driver.quit()
 
+    result.to_csv(outfile)
+    
+    return result
+
 
 # %%
-def download_brain_slice(exp_id, dirname, path):
+def download_brain_slice(exp_id, dirname, image_path):
 
     # create an image download API
     image_api = ImageDownloadApi()
@@ -156,3 +163,12 @@ def download_brain_slice(exp_id, dirname, path):
     print(
         "Downloads completed.", file=sys.stderr, flush=True,
     )
+
+
+# %%
+def read_previous_results(infile):
+    
+    result = pd.read_csv(infile, index_col=0)
+    print(result)
+
+    return result

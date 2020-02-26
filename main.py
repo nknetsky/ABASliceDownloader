@@ -5,57 +5,79 @@ from function import *
 import sys
 import argparse
 
-# %%
-path = "/Users/erikliu/Desktop/"
 
-# user argparse to parse input string
-try:
+# %%
+def main():
+
+    # user argparse to parse input string
     # set up a parser
     parser = argparse.ArgumentParser(
-        description="Search experiments in ABA using keywords"
+        description="Search experiments and download images from ABA"
     )
-    
+
     # add arguments for keywords
     parser.add_argument(
         "-k",
         "--keywords",
-        metavar="keywords",
+        metavar="keyword",
         nargs="*",
         help="keywords for the search in ABA",
+    )
+
+    # add arguments for output file path
+    parser.add_argument(
+        "-o",
+        "--outfile",
+        metavar="outfile",
+        nargs="?",
+        default="search_result.csv",
+        help="Specify the name of output.csv",
+    )
+    
+    # add arguments for reading previous results
+    parser.add_argument(
+        "-r",
+        "--read",
+        action='store_true',
+        help="Read previous results from a file",
+    )
+
+    # add arguments for input file path
+    parser.add_argument(
+        "-i",
+        "--infile",
+        metavar="infile",
+        nargs="?",
+        default="search_result.csv",
+        help="Specify the file to read",
+    )
+
+    # add arguments for download images
+    parser.add_argument(
+        "-d",
+        "--download",
+        action='store_true',
+        help="Download images. -k or -r is required for this flag.",
     )
     
     # parse the input string
     args = parser.parse_args()
-    search_by_keywords(args.keywords)
 
-except ValueError:
-    print("Please see --help for the command use")
-
-# change the following arguments fit to argparse
-    
-# '-p' followed by a path
-# specify the path to store the images
-if "-p" in sys.argv:
     try:
-        path = sys.argv[sys.argv.index("-p") + 1]
-    except ValueError:
-        print("Place an input name after -p.")
+        if args.keywords:
+            df= search_by_keywords(args.keywords, args.outfile)
+        elif args.read:
+            df=read_previous_results(args.infile)
+        
+        if args.download:
+            try:
+                if not df.empty:
+                    download_brain_slice(exp_id, dirname, path)
+            except Exception:
+                print("-k or -r is required for downloading images. Use --help to see the command use.")
+            
+    except Exception:
+        print("Something went wrong. Use --help to see the command use.")
 
-# '-d' followed by an experiment id
-# download the images of the experiment id
-if "-d" in sys.argv:
-    exp_id = sys.argv[sys.argv.index("-d") + 1]
-    gene_name = get_gene_by_id(results_df, exp_id)
-
-    # '-dir' followed by a directory name
-    # specify the directory name to store the images
-    # if not specified, the gene name of the experiment id is used
-    if "--dir" in sys.argv:
-        try:
-            dirname = sys.argv[sys.argv.index("--dir") + 1]
-        except ValueError:
-            print("Place an input name after --dir.")
-    else:
-        dirname = gene_name
-
-    download_brain_slice(exp_id, dirname, path)
+if __name__ == "__main__":
+    main()
