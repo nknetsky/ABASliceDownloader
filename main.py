@@ -33,13 +33,10 @@ def main():
         default="search_result.csv",
         help="Specify the name of output.csv",
     )
-    
+
     # add arguments for reading previous results
     parser.add_argument(
-        "-r",
-        "--read",
-        action='store_true',
-        help="Read previous results from a file",
+        "-r", "--read", action="store_true", help="Read previous results from a file",
     )
 
     # add arguments for input file path
@@ -56,28 +53,28 @@ def main():
     parser.add_argument(
         "-d",
         "--download",
-        action='store_true',
-        help="Download images. -k or -r is required for this flag.",
+        action="store_true",
+        help="Download brain slices. -k or -r is required for this flag.",
     )
-    
+
     # parse the input string
     args = parser.parse_args()
 
-    try:
-        if args.keywords:
-            df= search_by_keywords(args.keywords, args.outfile)
-        elif args.read:
-            df=read_previous_results(args.infile)
-        
-        if args.download:
-            try:
-                if not df.empty:
-                    download_brain_slice(exp_id, dirname, path)
-            except Exception:
-                print("-k or -r is required for downloading images. Use --help to see the command use.")
-            
-    except Exception:
-        print("Something went wrong. Use --help to see the command use.")
+    # run functions
+    if args.keywords:
+        df = search_by_keywords(args.keywords, args.outfile)
+    elif args.read:
+        df = read_previous_results(args.infile)
 
+    if args.download:
+        try:
+            if not df.empty:
+                download_brain_slice(df)
+        except Exception:
+            print(
+                "-k or -r is required for downloading images. Use --help to see the command use."
+            )
+
+# run the program
 if __name__ == "__main__":
     main()
