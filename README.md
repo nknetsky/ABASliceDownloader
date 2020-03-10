@@ -1,6 +1,6 @@
 # ABASliceDownloader
 
-Automatically download a full set of ISH images of a gene
+Automatically download the full set of ISH images of a gene of interest
 
 -   Latest modified date: February 28, 2020
 -   Latest version: v0.2
